@@ -1,3 +1,4 @@
+use crate::commands::init;
 use crate::config::Config;
 use crate::git;
 use std::path::{Path, PathBuf};
@@ -31,5 +32,7 @@ pub fn resolve(start_dir: &Path) -> anyhow::Result<Context> {
     }
 
     let config = Config::load(&repo_root)?;
+    init::ensure_gitignore(&repo_root, &config.worktree.directory)?;
+
     Ok(Context { repo_root, config })
 }
