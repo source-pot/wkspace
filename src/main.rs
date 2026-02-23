@@ -1,9 +1,3 @@
-mod commands;
-mod config;
-mod error;
-mod git;
-mod scripts;
-
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -40,10 +34,10 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init => commands::init::run(),
-        Commands::New { name } => commands::new::run(&name),
-        Commands::Rm { name } => commands::rm::run(&name),
-        Commands::List => commands::list::run(),
-        Commands::Open { name } => commands::open::run(&name),
+        Commands::Init => wkspace::commands::init::run(),
+        Commands::New { name } => wkspace::commands::new::run(&name),
+        Commands::Rm { name } => wkspace::commands::rm::run(&name),
+        Commands::List => wkspace::commands::list::run(),
+        Commands::Open { name } => wkspace::commands::open::run(&name),
     }
 }
