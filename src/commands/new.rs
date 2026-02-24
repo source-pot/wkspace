@@ -27,7 +27,10 @@ pub fn run(name: &str) -> anyhow::Result<()> {
     }
 
     // Create worktree + branch
-    println!("Creating worktree '{name}' from '{}'...", ctx.config.worktree.base_branch);
+    println!(
+        "Creating worktree '{name}' from '{}'...",
+        ctx.config.worktree.base_branch
+    );
     git::add_worktree(
         &ctx.repo_root,
         &worktree_path,

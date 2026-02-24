@@ -1,7 +1,10 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "wkspace", about = "Manage Git worktrees with lifecycle scripts")]
+#[command(
+    name = "wkspace",
+    about = "Manage Git worktrees with lifecycle scripts"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,

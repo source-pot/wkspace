@@ -2,12 +2,32 @@ use std::process::Command;
 use tempfile::TempDir;
 
 fn init_git_repo(dir: &std::path::Path) {
-    Command::new("git").args(["init", "-b", "main"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.email", "test@test.com"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.name", "Test"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
     std::fs::write(dir.join("README.md"), "# test").unwrap();
-    Command::new("git").args(["add", "."]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["commit", "-m", "init"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["add", "."])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "init"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
 }
 
 fn wkspace_bin() -> Command {
@@ -36,7 +56,11 @@ fn rm_removes_worktree_and_branch() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(!dir.path().join(".worktrees/to-remove").exists());
 
     // Branch should be gone
@@ -69,7 +93,11 @@ fn rm_handles_untracked_files() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(!dir.path().join(".worktrees/dirty").exists());
 }
 

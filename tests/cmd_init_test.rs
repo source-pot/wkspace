@@ -2,12 +2,32 @@ use std::process::Command;
 use tempfile::TempDir;
 
 fn init_git_repo(dir: &std::path::Path) {
-    Command::new("git").args(["init", "-b", "main"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.email", "test@test.com"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.name", "Test"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
     std::fs::write(dir.join("README.md"), "# test").unwrap();
-    Command::new("git").args(["add", "."]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["commit", "-m", "init"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["add", "."])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "init"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
 }
 
 fn wkspace_bin() -> Command {
@@ -25,7 +45,11 @@ fn init_creates_config_file() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(dir.path().join(".wkspace.toml").exists());
 
     let contents = std::fs::read_to_string(dir.path().join(".wkspace.toml")).unwrap();
@@ -38,8 +62,16 @@ fn init_is_idempotent() {
     init_git_repo(dir.path());
 
     // Run init twice
-    wkspace_bin().args(["init"]).current_dir(dir.path()).output().unwrap();
-    let output = wkspace_bin().args(["init"]).current_dir(dir.path()).output().unwrap();
+    wkspace_bin()
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+    let output = wkspace_bin()
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
 
     assert!(output.status.success());
 }
@@ -80,8 +112,16 @@ fn init_does_not_duplicate_gitignore_entry() {
     init_git_repo(dir.path());
 
     // Run init twice
-    wkspace_bin().args(["init"]).current_dir(dir.path()).output().unwrap();
-    wkspace_bin().args(["init"]).current_dir(dir.path()).output().unwrap();
+    wkspace_bin()
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+    wkspace_bin()
+        .args(["init"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
 
     let gitignore = std::fs::read_to_string(dir.path().join(".gitignore")).unwrap();
     let count = gitignore.matches(".worktrees").count();

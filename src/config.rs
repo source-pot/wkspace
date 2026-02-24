@@ -57,8 +57,8 @@ impl Config {
     pub fn load(repo_root: &Path) -> anyhow::Result<Self> {
         let config_path = repo_root.join(".wkspace.toml");
         if config_path.exists() {
-            let contents = std::fs::read_to_string(&config_path)
-                .context("Failed to read .wkspace.toml")?;
+            let contents =
+                std::fs::read_to_string(&config_path).context("Failed to read .wkspace.toml")?;
             Self::parse(&contents)
         } else {
             Ok(Self::default())

@@ -45,7 +45,11 @@ pub fn run(name: &str) -> anyhow::Result<()> {
     // Run teardown scripts (stop on failure)
     if !ctx.config.scripts.teardown.is_empty() {
         println!("Running teardown scripts...");
-        scripts::run_scripts(&ctx.config.scripts.teardown, &worktree_path, &HashMap::new())?;
+        scripts::run_scripts(
+            &ctx.config.scripts.teardown,
+            &worktree_path,
+            &HashMap::new(),
+        )?;
     }
 
     // Force-remove the worktree directory

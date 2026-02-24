@@ -16,9 +16,7 @@ pub fn run(name: &str) -> anyhow::Result<()> {
     if env::var("WKSPACE_NO_SHELL").is_err() {
         let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
         println!("Opening shell in {}...", worktree_path.display());
-        let mut child = Command::new(&shell)
-            .current_dir(&worktree_path)
-            .spawn()?;
+        let mut child = Command::new(&shell).current_dir(&worktree_path).spawn()?;
         child.wait()?;
     }
 

@@ -2,12 +2,32 @@ use std::process::Command;
 use tempfile::TempDir;
 
 fn init_git_repo(dir: &std::path::Path) {
-    Command::new("git").args(["init", "-b", "main"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.email", "test@test.com"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.name", "Test"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
     std::fs::write(dir.join("README.md"), "# test").unwrap();
-    Command::new("git").args(["add", "."]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["commit", "-m", "init"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["add", "."])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "init"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
 }
 
 fn wkspace_bin() -> Command {
@@ -27,7 +47,11 @@ fn new_creates_worktree_and_branch() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(dir.path().join(".worktrees").join("my-feature").exists());
 
     // Verify branch was created
@@ -66,7 +90,11 @@ teardown = []
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(dir.path().join(".worktrees/with-setup/setup-ran").exists());
 }
 
@@ -124,13 +152,25 @@ test_port = "MY_TEST_PORT"
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 
     let port_file = dir.path().join(".worktrees/port-test/port.txt");
-    assert!(port_file.exists(), "port.txt should have been created by setup script");
+    assert!(
+        port_file.exists(),
+        "port.txt should have been created by setup script"
+    );
 
-    let contents = std::fs::read_to_string(&port_file).unwrap().trim().to_string();
-    let port: u16 = contents.parse().expect("port.txt should contain a valid port number");
+    let contents = std::fs::read_to_string(&port_file)
+        .unwrap()
+        .trim()
+        .to_string();
+    let port: u16 = contents
+        .parse()
+        .expect("port.txt should contain a valid port number");
     assert!(
         (10000..=11000).contains(&port),
         "Port {port} should be in range 10000..=11000"
@@ -149,7 +189,11 @@ fn new_with_no_name_creates_worktree_with_random_name() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 
     let worktrees_dir = dir.path().join(".worktrees");
     let entries: Vec<_> = std::fs::read_dir(&worktrees_dir)
@@ -160,7 +204,10 @@ fn new_with_no_name_creates_worktree_with_random_name() {
 
     let name = entries[0].file_name().to_string_lossy().into_owned();
     assert_eq!(name.len(), 8, "name should be 8 chars, got: {name}");
-    assert!(name.chars().all(|c| c.is_ascii_hexdigit()), "name should be hex, got: {name}");
+    assert!(
+        name.chars().all(|c| c.is_ascii_hexdigit()),
+        "name should be hex, got: {name}"
+    );
 }
 
 #[test]
@@ -176,7 +223,11 @@ fn new_auto_inits_config() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(dir.path().join(".wkspace.toml").exists());
     assert!(dir.path().join(".worktrees/auto-init").exists());
 }

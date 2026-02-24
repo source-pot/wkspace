@@ -16,7 +16,10 @@ teardown = ["echo cleanup"]
     let config = Config::parse(toml_str).unwrap();
     assert_eq!(config.worktree.base_branch, "develop");
     assert_eq!(config.worktree.directory, ".trees");
-    assert_eq!(config.scripts.setup, vec!["npm install", "cp .env.example .env"]);
+    assert_eq!(
+        config.scripts.setup,
+        vec!["npm install", "cp .env.example .env"]
+    );
     assert_eq!(config.scripts.teardown, vec!["echo cleanup"]);
 }
 
@@ -40,12 +43,32 @@ fn default_template_is_valid_toml() {
 }
 
 fn init_git_repo(dir: &std::path::Path) {
-    Command::new("git").args(["init", "-b", "main"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.email", "test@test.com"]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["config", "user.name", "Test"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
     std::fs::write(dir.join("README.md"), "# test").unwrap();
-    Command::new("git").args(["add", "."]).current_dir(dir).output().unwrap();
-    Command::new("git").args(["commit", "-m", "init"]).current_dir(dir).output().unwrap();
+    Command::new("git")
+        .args(["add", "."])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "init"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
 }
 
 #[test]

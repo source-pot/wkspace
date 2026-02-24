@@ -13,9 +13,7 @@ pub fn find_repo_root(start_dir: &Path) -> anyhow::Result<PathBuf> {
         anyhow::bail!(WkspaceError::NotAGitRepo);
     }
 
-    let path = String::from_utf8(output.stdout)?
-        .trim()
-        .to_string();
+    let path = String::from_utf8(output.stdout)?.trim().to_string();
     Ok(PathBuf::from(path))
 }
 
@@ -131,7 +129,9 @@ pub fn list_worktrees(repo_root: &Path) -> anyhow::Result<Vec<WorktreeEntry>> {
             current_path = Some(PathBuf::from(path));
         } else if let Some(branch_ref) = line.strip_prefix("branch ") {
             // branch refs/heads/main -> main
-            current_branch = branch_ref.strip_prefix("refs/heads/").map(|s| s.to_string());
+            current_branch = branch_ref
+                .strip_prefix("refs/heads/")
+                .map(|s| s.to_string());
         } else if line == "bare" {
             current_bare = true;
         }
