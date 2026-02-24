@@ -8,7 +8,12 @@ description = "A CLI tool to manage Git worktrees with lifecycle scripts"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
+rand = "0.8"
 toml = "0.8"
+
+[profile.release]
+strip = true
+lto = "thin"
 
 [dev-dependencies]
 assert_cmd = "2"
