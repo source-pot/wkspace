@@ -9,6 +9,7 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 rand = "0.8"
+dialoguer = "0.11"
 toml = "0.8"
 
 [profile.release]
