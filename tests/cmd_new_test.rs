@@ -211,6 +211,96 @@ fn new_with_no_name_creates_worktree_with_random_name() {
 }
 
 #[test]
+fn new_fetches_and_updates_base_branch_from_remote() {
+    let dir = TempDir::new().unwrap();
+    init_git_repo(dir.path());
+
+    // Create a bare clone to act as the remote
+    let remote_dir = TempDir::new().unwrap();
+    Command::new("git")
+        .args([
+            "clone",
+            "--bare",
+            &dir.path().to_string_lossy(),
+            &remote_dir.path().to_string_lossy(),
+        ])
+        .output()
+        .unwrap();
+
+    // Point the original repo's origin at the bare clone
+    Command::new("git")
+        .args([
+            "remote",
+            "add",
+            "origin",
+            &remote_dir.path().to_string_lossy(),
+        ])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+
+    // Push a new commit directly to the bare remote (simulating someone else pushing)
+    let scratch = TempDir::new().unwrap();
+    Command::new("git")
+        .args([
+            "clone",
+            &remote_dir.path().to_string_lossy(),
+            &scratch.path().to_string_lossy(),
+        ])
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(scratch.path())
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(scratch.path())
+        .output()
+        .unwrap();
+    std::fs::write(scratch.path().join("remote-file.txt"), "from remote").unwrap();
+    Command::new("git")
+        .args(["add", "."])
+        .current_dir(scratch.path())
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "remote commit"])
+        .current_dir(scratch.path())
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["push"])
+        .current_dir(scratch.path())
+        .output()
+        .unwrap();
+
+    // Now run wkspace new — it should fetch and update main before branching
+    let output = wkspace_bin()
+        .args(["new", "fetch-test"])
+        .current_dir(dir.path())
+        .env("WKSPACE_NO_SHELL", "1")
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    // The worktree should contain the remote-file.txt from the remote commit
+    let remote_file = dir.path().join(".worktrees/fetch-test/remote-file.txt");
+    assert!(
+        remote_file.exists(),
+        "worktree should contain remote-file.txt fetched from origin"
+    );
+    let contents = std::fs::read_to_string(&remote_file).unwrap();
+    assert_eq!(contents, "from remote");
+}
+
+#[test]
 fn new_auto_inits_config() {
     let dir = TempDir::new().unwrap();
     init_git_repo(dir.path());

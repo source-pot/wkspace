@@ -74,6 +74,62 @@ pub fn current_worktree_name(cwd: &Path) -> anyhow::Result<String> {
     Ok(file_name.to_string())
 }
 
+/// Fetch the latest state of a branch from origin and fast-forward the local ref.
+///
+/// Skips the update if the local branch has unpushed commits (is ahead of remote).
+/// If the fetch fails (no remote, offline), prints a warning and continues.
+pub fn fetch_and_update_branch(repo_root: &Path, branch: &str) {
+    // Fetch latest from origin
+    let fetch = Command::new("git")
+        .args(["fetch", "origin", branch])
+        .current_dir(repo_root)
+        .output();
+
+    let Ok(fetch_output) = fetch else {
+        eprintln!("Warning: failed to fetch '{branch}' from origin, using local branch");
+        return;
+    };
+
+    if !fetch_output.status.success() {
+        eprintln!("Warning: failed to fetch '{branch}' from origin, using local branch");
+        return;
+    }
+
+    // Check if local branch is ahead of remote (has unpushed work)
+    let ancestor_check = Command::new("git")
+        .args([
+            "merge-base",
+            "--is-ancestor",
+            &format!("origin/{branch}"),
+            branch,
+        ])
+        .current_dir(repo_root)
+        .output();
+
+    if let Ok(output) = ancestor_check {
+        if output.status.success() {
+            // origin/branch is ancestor of local branch — local is ahead or equal, skip update
+            return;
+        }
+    }
+
+    // Fast-forward local branch to match remote
+    let remote_ref = format!("origin/{branch}");
+    let update = Command::new("git")
+        .args(["update-ref", &format!("refs/heads/{branch}"), &remote_ref])
+        .current_dir(repo_root)
+        .output();
+
+    match update {
+        Ok(output) if output.status.success() => {
+            println!("Updated '{branch}' to match origin.");
+        }
+        _ => {
+            eprintln!("Warning: failed to update local '{branch}', using current state");
+        }
+    }
+}
+
 /// Check if a local branch exists.
 pub fn branch_exists(repo_root: &Path, branch: &str) -> anyhow::Result<bool> {
     let output = Command::new("git")

@@ -30,6 +30,13 @@ pub fn run(name: &str) -> anyhow::Result<()> {
     let mut script_env = port_env;
     script_env.insert("WORKTREE_NAME".to_string(), name.to_string());
 
+    // Update base branch from remote before branching
+    println!(
+        "Updating '{}' from remote...",
+        ctx.config.worktree.base_branch
+    );
+    git::fetch_and_update_branch(&ctx.repo_root, &ctx.config.worktree.base_branch);
+
     // Create worktree + branch
     println!(
         "Creating worktree '{name}' from '{}'...",
