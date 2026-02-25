@@ -168,4 +168,5 @@ All worktrees live under a single directory (`.worktrees/` by default) which is 
 
 ## License
 
-<!-- TODO: Choose a license -->
+MIT.
+
