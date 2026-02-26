@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::env;
 use std::process::Command;
 
-pub fn run(name: &str) -> anyhow::Result<()> {
+pub fn run(name: &str, desc: Option<&str>) -> anyhow::Result<()> {
     let cwd = env::current_dir()?;
     let ctx = context::resolve(&cwd)?;
     let worktree_path = ctx.worktree_path(name);
@@ -48,6 +48,11 @@ pub fn run(name: &str) -> anyhow::Result<()> {
         name,
         &ctx.config.worktree.base_branch,
     )?;
+
+    // Store branch description if provided
+    if let Some(d) = desc {
+        git::set_branch_description(&ctx.repo_root, name, d)?;
+    }
 
     // Run setup scripts
     if !ctx.config.scripts.setup.is_empty() {

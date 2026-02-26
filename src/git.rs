@@ -202,6 +202,83 @@ pub fn prune_worktrees(repo_root: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Set the description for a branch using git config.
+pub fn set_branch_description(repo_root: &Path, branch: &str, desc: &str) -> anyhow::Result<()> {
+    let output = Command::new("git")
+        .args(["config", &format!("branch.{branch}.description"), desc])
+        .current_dir(repo_root)
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!(WkspaceError::GitError(stderr.trim().to_string()));
+    }
+    Ok(())
+}
+
+/// Get the description for a branch, if set.
+pub fn get_branch_description(repo_root: &Path, branch: &str) -> Option<String> {
+    let output = Command::new("git")
+        .args(["config", &format!("branch.{branch}.description")])
+        .current_dir(repo_root)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let desc = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    if desc.is_empty() {
+        None
+    } else {
+        Some(desc)
+    }
+}
+
+/// Status summary for a worktree's working directory.
+pub struct WorktreeStatus {
+    pub uncommitted_count: usize,
+}
+
+/// Get the working directory status for a worktree path.
+pub fn get_worktree_status(worktree_path: &Path) -> anyhow::Result<WorktreeStatus> {
+    let output = Command::new("git")
+        .args(["status", "--porcelain"])
+        .current_dir(worktree_path)
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!(WkspaceError::GitError(stderr.trim().to_string()));
+    }
+
+    let stdout = String::from_utf8(output.stdout)?;
+    let count = stdout.lines().filter(|l| !l.is_empty()).count();
+    Ok(WorktreeStatus {
+        uncommitted_count: count,
+    })
+}
+
+/// Get the last commit time for a branch.
+/// Returns (relative_time, unix_timestamp) e.g. ("3 hours ago", 1700000000).
+pub fn get_last_commit_time(repo_root: &Path, branch: &str) -> Option<(String, i64)> {
+    let output = Command::new("git")
+        .args(["log", "-1", "--format=%cr|%ct", branch])
+        .current_dir(repo_root)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    let (relative, timestamp_str) = stdout.split_once('|')?;
+    let timestamp = timestamp_str.parse::<i64>().ok()?;
+    Some((relative.to_string(), timestamp))
+}
+
 /// A parsed worktree entry from `git worktree list --porcelain`.
 #[derive(Debug)]
 pub struct WorktreeEntry {
