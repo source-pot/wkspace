@@ -22,6 +22,11 @@ enum Commands {
         #[arg(short, long)]
         desc: Option<String>,
     },
+    /// Create a worktree from an existing branch
+    From {
+        /// Branch name (interactive picker if omitted)
+        branch: Option<String>,
+    },
     /// Run teardown scripts and remove a worktree and its branch
     Rm {
         /// Name of the worktree to remove (interactive picker if omitted)
@@ -49,6 +54,13 @@ fn main() -> anyhow::Result<()> {
                 None => wkspace::names::generate_unique_name()?,
             };
             wkspace::commands::new::run(&name, desc.as_deref())
+        }
+        Commands::From { branch } => {
+            let branch = match branch {
+                Some(b) => b,
+                None => wkspace::commands::from::pick_branch()?,
+            };
+            wkspace::commands::from::run(&branch)
         }
         Commands::Rm { name } => {
             let name = match name {
