@@ -88,7 +88,7 @@ fn rm_handles_untracked_files() {
     std::fs::write(dir.path().join(".worktrees/dirty/.env"), "SECRET=123").unwrap();
 
     let output = wkspace_bin()
-        .args(["rm", "dirty"])
+        .args(["rm", "--force", "dirty"])
         .current_dir(dir.path())
         .output()
         .unwrap();
