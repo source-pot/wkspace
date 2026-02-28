@@ -239,6 +239,7 @@ pub fn get_branch_description(repo_root: &Path, branch: &str) -> Option<String> 
 /// Status summary for a worktree's working directory.
 pub struct WorktreeStatus {
     pub uncommitted_count: usize,
+    pub files: Vec<String>,
 }
 
 /// Get the working directory status for a worktree path.
@@ -254,9 +255,14 @@ pub fn get_worktree_status(worktree_path: &Path) -> anyhow::Result<WorktreeStatu
     }
 
     let stdout = String::from_utf8(output.stdout)?;
-    let count = stdout.lines().filter(|l| !l.is_empty()).count();
+    let files: Vec<String> = stdout
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|l| l[3..].to_string())
+        .collect();
     Ok(WorktreeStatus {
-        uncommitted_count: count,
+        uncommitted_count: files.len(),
+        files,
     })
 }
 

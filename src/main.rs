@@ -31,6 +31,9 @@ enum Commands {
     Rm {
         /// Name of the worktree to remove (interactive picker if omitted)
         name: Option<String>,
+        /// Skip confirmation prompt for uncommitted changes
+        #[arg(short, long)]
+        force: bool,
     },
     /// List active worktrees
     List,
@@ -62,12 +65,12 @@ fn main() -> anyhow::Result<()> {
             };
             wkspace::commands::from::run(&branch)
         }
-        Commands::Rm { name } => {
+        Commands::Rm { name, force } => {
             let name = match name {
                 Some(n) => n,
                 None => wkspace::commands::pick_worktree("Select worktree to remove")?,
             };
-            wkspace::commands::rm::run(&name)
+            wkspace::commands::rm::run(&name, force)
         }
         Commands::List => wkspace::commands::list::run(),
         Commands::Open { name } => {

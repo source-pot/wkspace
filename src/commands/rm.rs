@@ -5,7 +5,7 @@ use crate::scripts;
 use std::collections::HashMap;
 use std::env;
 
-pub fn run(name: &str) -> anyhow::Result<()> {
+pub fn run(name: &str, force: bool) -> anyhow::Result<()> {
     let cwd = env::current_dir()?;
     let ctx = context::resolve(&cwd)?;
     let worktree_path = ctx.worktree_path(name);
@@ -13,6 +13,22 @@ pub fn run(name: &str) -> anyhow::Result<()> {
     // Validate worktree exists
     if !worktree_path.exists() {
         anyhow::bail!(WkspaceError::WorktreeNotFound(name.to_string()));
+    }
+
+    // Warn if worktree has uncommitted changes
+    let status = git::get_worktree_status(&worktree_path)?;
+    if !force && status.uncommitted_count > 0 {
+        println!("Worktree '{name}' has uncommitted changes:");
+        for file in &status.files {
+            println!("  {file}");
+        }
+        let confirm = dialoguer::Confirm::new()
+            .with_prompt("Are you sure you want to remove this worktree?")
+            .default(false)
+            .interact()?;
+        if !confirm {
+            return Ok(());
+        }
     }
 
     // Run teardown scripts (stop on failure)
