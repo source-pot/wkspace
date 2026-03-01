@@ -30,6 +30,10 @@ Requires [Rust](https://www.rust-lang.org/tools/install) (cargo).
 cargo install --path .
 ```
 
+## Platform Support
+
+wkspace is developed and tested on macOS. Pre-built binaries for Linux and Windows are provided as-is, with no guarantees of functionality. If you encounter platform-specific issues, bug reports are welcome.
+
 ## Quick Start
 
 ```sh
