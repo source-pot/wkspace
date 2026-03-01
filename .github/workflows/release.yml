@@ -33,6 +33,8 @@ jobs:
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-latest
             use-cross: true
+          - target: x86_64-pc-windows-msvc
+            runner: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -59,21 +61,41 @@ jobs:
           else
             cargo build --release --locked --target ${{ matrix.target }}
           fi
+        shell: bash
 
-      - name: Package
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
           tar czf ../../../wkspace-${{ matrix.target }}.tar.gz wkspace
           cd ../../..
           shasum -a 256 wkspace-${{ matrix.target }}.tar.gz > wkspace-${{ matrix.target }}.tar.gz.sha256
 
-      - name: Upload artifact
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "target/${{ matrix.target }}/release/wkspace.exe" -DestinationPath "wkspace-${{ matrix.target }}.zip"
+          $hash = (Get-FileHash -Algorithm SHA256 "wkspace-${{ matrix.target }}.zip").Hash.ToLower()
+          "$hash  wkspace-${{ matrix.target }}.zip" | Out-File -Encoding ascii "wkspace-${{ matrix.target }}.zip.sha256"
+
+      - name: Upload artifact (Unix)
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: wkspace-${{ matrix.target }}
           path: |
             wkspace-${{ matrix.target }}.tar.gz
             wkspace-${{ matrix.target }}.tar.gz.sha256
+
+      - name: Upload artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wkspace-${{ matrix.target }}
+          path: |
+            wkspace-${{ matrix.target }}.zip
+            wkspace-${{ matrix.target }}.zip.sha256
 
   release:
     name: Release
