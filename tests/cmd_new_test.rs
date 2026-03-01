@@ -404,6 +404,25 @@ teardown = []
 }
 
 #[test]
+fn new_no_shell_flag_skips_shell() {
+    let dir = TempDir::new().unwrap();
+    init_git_repo(dir.path());
+
+    let output = wkspace_bin()
+        .args(["new", "no-shell-test", "--no-shell"])
+        .current_dir(dir.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(dir.path().join(".worktrees/no-shell-test").exists());
+}
+
+#[test]
 fn new_auto_inits_config() {
     let dir = TempDir::new().unwrap();
     init_git_repo(dir.path());
