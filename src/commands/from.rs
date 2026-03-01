@@ -50,7 +50,7 @@ pub fn run(branch: &str) -> anyhow::Result<()> {
     // If the selected branch is the base branch, delegate to `new` flow
     if branch == ctx.config.worktree.base_branch {
         let name = crate::names::generate_unique_name()?;
-        return new::run(&name, None);
+        return new::run(&name, None, false);
     }
 
     // Check if the branch is already checked out in another worktree

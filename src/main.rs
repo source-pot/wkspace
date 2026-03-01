@@ -21,6 +21,9 @@ enum Commands {
         /// Description for the worktree branch
         #[arg(short, long)]
         desc: Option<String>,
+        /// Skip spawning an interactive shell after setup
+        #[arg(long)]
+        no_shell: bool,
     },
     /// Create a worktree from an existing branch
     From {
@@ -51,12 +54,16 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Init => wkspace::commands::init::run(),
-        Commands::New { name, desc } => {
+        Commands::New {
+            name,
+            desc,
+            no_shell,
+        } => {
             let name = match name {
                 Some(n) => n,
                 None => wkspace::names::generate_unique_name()?,
             };
-            wkspace::commands::new::run(&name, desc.as_deref())
+            wkspace::commands::new::run(&name, desc.as_deref(), no_shell)
         }
         Commands::From { branch } => {
             let branch = match branch {

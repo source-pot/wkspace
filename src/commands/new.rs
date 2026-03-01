@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::env;
 use std::process::Command;
 
-pub fn run(name: &str, desc: Option<&str>) -> anyhow::Result<()> {
+pub fn run(name: &str, desc: Option<&str>, no_shell: bool) -> anyhow::Result<()> {
     let cwd = env::current_dir()?;
     let ctx = context::resolve(&cwd)?;
 
@@ -69,8 +69,8 @@ pub fn run(name: &str, desc: Option<&str>) -> anyhow::Result<()> {
         scripts::run_scripts(&ctx.config.scripts.setup, &worktree_path, &script_env)?;
     }
 
-    // Spawn subshell (skip in tests via env var)
-    if env::var("WKSPACE_NO_SHELL").is_err() {
+    // Spawn subshell (skip via --no-shell flag or WKSPACE_NO_SHELL env var)
+    if !no_shell && env::var("WKSPACE_NO_SHELL").is_err() {
         spawn_shell(&worktree_path, &script_env)?;
     }
 
