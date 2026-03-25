@@ -87,7 +87,9 @@ pub(crate) fn spawn_shell(
     cwd: &std::path::Path,
     extra_env: &HashMap<String, String>,
 ) -> anyhow::Result<()> {
-    let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+    let shell = env::var("WKSPACE_SHELL")
+        .or_else(|_| env::var("SHELL"))
+        .unwrap_or_else(|_| "/bin/sh".to_string());
     println!("Opening shell in {}...", cwd.display());
     let mut child = Command::new(&shell)
         .current_dir(cwd)

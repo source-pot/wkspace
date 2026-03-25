@@ -128,8 +128,6 @@ Must be run from inside a worktree created by `wkspace new`.
 
 Opens an interactive shell in an existing worktree. Does not re-run setup scripts.
 
-Uses `$SHELL` (falls back to `/bin/sh`).
-
 ### `wkspace list`
 
 Lists wkspace-managed worktrees with their name, branch, and path. Only shows worktrees inside the configured directory — not all git worktrees in the repo.
@@ -197,6 +195,14 @@ backend = "BACKEND_PORT"
 Each port is randomly allocated from the range 10000–11000 and guaranteed to be available at the time of allocation. The environment variables are injected into both setup scripts and the interactive shell.
 
 Scripts run sequentially via `sh -c` and stop on the first failure.
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `WKSPACE_SHELL` | Shell to launch in worktrees. Falls back to `$SHELL`, then `/bin/sh`. Set this to e.g. `tmux` or `fish` to override the default login shell. |
+| `WKSPACE_NO_SHELL` | If set, skip launching a shell after `new`, `from`, and `open`. |
+| `WORKTREE_NAME` | Automatically set in scripts and the shell session to the worktree directory name. |
 
 ## How It Works
 
