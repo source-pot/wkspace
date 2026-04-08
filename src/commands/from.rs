@@ -14,11 +14,12 @@ pub fn pick_branch() -> anyhow::Result<String> {
     let ctx = context::resolve(&cwd)?;
 
     // Fetch latest from remote
+    let remote = &ctx.config.worktree.remote;
     println!("Fetching from remote...");
-    git::fetch_all(&ctx.repo_root);
+    git::fetch_all(&ctx.repo_root, remote);
 
     // Get all branches and filter out those already attached to worktrees
-    let all_branches = git::list_branches(&ctx.repo_root)?;
+    let all_branches = git::list_branches(&ctx.repo_root, remote)?;
     let worktrees = git::list_worktrees(&ctx.repo_root)?;
     let attached: HashSet<String> = worktrees.iter().filter_map(|w| w.branch.clone()).collect();
 
@@ -80,11 +81,12 @@ pub fn run(branch: &str, no_scripts: bool) -> anyhow::Result<()> {
     script_env.insert("WORKTREE_NAME".to_string(), worktree_name.clone());
 
     // Fetch latest from remote
+    let remote = &ctx.config.worktree.remote;
     println!("Fetching from remote...");
-    git::fetch_all(&ctx.repo_root);
+    git::fetch_all(&ctx.repo_root, remote);
 
     // Update the target branch to match remote before checkout
-    git::update_branch_from_remote(&ctx.repo_root, branch);
+    git::update_branch_from_remote(&ctx.repo_root, branch, remote);
 
     // Check out existing branch into worktree
     println!("Creating worktree '{worktree_name}' from branch '{branch}'...");

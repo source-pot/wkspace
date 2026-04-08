@@ -77,32 +77,32 @@ pub fn current_worktree_name(cwd: &Path) -> anyhow::Result<String> {
 /// Fetch all branches from origin and prune deleted remote branches.
 ///
 /// If the fetch fails (no remote, offline), prints a warning and continues.
-pub fn fetch_all(repo_root: &Path) {
+pub fn fetch_all(repo_root: &Path, remote: &str) {
     let fetch = Command::new("git")
-        .args(["fetch", "origin", "--prune"])
+        .args(["fetch", remote, "--prune"])
         .current_dir(repo_root)
         .output();
 
     let Ok(fetch_output) = fetch else {
-        eprintln!("Warning: failed to fetch from origin, using local state");
+        eprintln!("Warning: failed to fetch from {remote}, using local state");
         return;
     };
 
     if !fetch_output.status.success() {
-        eprintln!("Warning: failed to fetch from origin, using local state");
+        eprintln!("Warning: failed to fetch from {remote}, using local state");
     }
 }
 
 /// Fast-forward a local branch ref to match its remote tracking branch.
 ///
 /// Skips the update if the local branch has unpushed commits (is ahead of remote).
-pub fn update_branch_from_remote(repo_root: &Path, branch: &str) {
+pub fn update_branch_from_remote(repo_root: &Path, branch: &str, remote: &str) {
     // Check if local branch is ahead of remote (has unpushed work)
     let ancestor_check = Command::new("git")
         .args([
             "merge-base",
             "--is-ancestor",
-            &format!("origin/{branch}"),
+            &format!("{remote}/{branch}"),
             branch,
         ])
         .current_dir(repo_root)
@@ -110,13 +110,13 @@ pub fn update_branch_from_remote(repo_root: &Path, branch: &str) {
 
     if let Ok(output) = ancestor_check {
         if output.status.success() {
-            // origin/branch is ancestor of local branch — local is ahead or equal, skip update
+            // remote/branch is ancestor of local branch — local is ahead or equal, skip update
             return;
         }
     }
 
     // Fast-forward local branch to match remote
-    let remote_ref = format!("origin/{branch}");
+    let remote_ref = format!("{remote}/{branch}");
     let update = Command::new("git")
         .args(["update-ref", &format!("refs/heads/{branch}"), &remote_ref])
         .current_dir(repo_root)
@@ -124,7 +124,7 @@ pub fn update_branch_from_remote(repo_root: &Path, branch: &str) {
 
     match update {
         Ok(output) if output.status.success() => {
-            println!("Updated '{branch}' to match origin.");
+            println!("Updated '{branch}' to match {remote}.");
         }
         _ => {
             eprintln!("Warning: failed to update local '{branch}', using current state");
@@ -328,7 +328,7 @@ pub fn get_last_commit_time(repo_root: &Path, branch: &str) -> Option<(String, i
 /// If a local branch tracks a remote (e.g. `feat/x` and `origin/feat/x`),
 /// only the local name is kept. Remote-only branches have their `origin/` prefix stripped.
 /// Returns a sorted list of unique branch names.
-pub fn list_branches(repo_root: &Path) -> anyhow::Result<Vec<String>> {
+pub fn list_branches(repo_root: &Path, remote: &str) -> anyhow::Result<Vec<String>> {
     let output = Command::new("git")
         .args(["branch", "-a", "--format=%(refname:short)"])
         .current_dir(repo_root)
@@ -342,13 +342,14 @@ pub fn list_branches(repo_root: &Path) -> anyhow::Result<Vec<String>> {
     let stdout = String::from_utf8(output.stdout)?;
     let mut local_branches = std::collections::HashSet::new();
     let mut remote_only = Vec::new();
+    let remote_prefix = format!("{remote}/");
 
     for line in stdout.lines() {
         let name = line.trim();
         if name.is_empty() {
             continue;
         }
-        if let Some(remote_name) = name.strip_prefix("origin/") {
+        if let Some(remote_name) = name.strip_prefix(&remote_prefix) {
             // Skip HEAD pointer
             if remote_name == "HEAD" {
                 continue;

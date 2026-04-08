@@ -23,6 +23,8 @@ pub struct WorktreeConfig {
     pub stale_days: u64,
     #[serde(default)]
     pub prefix: String,
+    #[serde(default = "default_remote")]
+    pub remote: String,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -45,6 +47,10 @@ fn default_stale_days() -> u64 {
     7
 }
 
+fn default_remote() -> String {
+    "origin".to_string()
+}
+
 impl Default for WorktreeConfig {
     fn default() -> Self {
         Self {
@@ -52,6 +58,7 @@ impl Default for WorktreeConfig {
             directory: default_directory(),
             stale_days: default_stale_days(),
             prefix: String::new(),
+            remote: default_remote(),
         }
     }
 }
@@ -90,6 +97,9 @@ directory = ".worktrees"
 # Prefix for branch names (e.g. your username: "rob")
 # Branches will be created as prefix/name (e.g. rob/my-feature)
 # prefix = ""
+
+# Git remote name used for fetch and branch tracking
+# remote = "origin"
 
 [scripts]
 # Commands to run after creating a worktree (runs in worktree directory)

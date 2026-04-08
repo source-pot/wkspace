@@ -47,10 +47,11 @@ pub fn run(name: &str, desc: Option<&str>, no_shell: bool, no_scripts: bool) -> 
 
     // Fetch latest from remote before branching
     println!("Fetching from remote...");
-    git::fetch_all(&ctx.repo_root);
+    let remote = &ctx.config.worktree.remote;
+    git::fetch_all(&ctx.repo_root, remote);
 
     // Prefer remote base branch; fall back to local if no remote exists
-    let remote_base = format!("origin/{}", ctx.config.worktree.base_branch);
+    let remote_base = format!("{remote}/{}", ctx.config.worktree.base_branch);
     let start_point = if git::ref_exists(&ctx.repo_root, &remote_base) {
         &remote_base
     } else {

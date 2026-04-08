@@ -157,6 +157,9 @@ base_branch = "main"
 # Directory (relative to repo root) where worktrees are stored
 directory = ".worktrees"
 
+# Git remote name used for fetch and branch tracking (default: "origin")
+# remote = "origin"
+
 [scripts]
 # Commands to run after creating a worktree (runs in worktree directory)
 setup = []
