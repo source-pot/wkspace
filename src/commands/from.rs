@@ -15,7 +15,7 @@ pub fn pick_branch() -> anyhow::Result<String> {
 
     // Fetch latest from remote
     println!("Fetching from remote...");
-    git::fetch_and_update_branch(&ctx.repo_root, &ctx.config.worktree.base_branch);
+    git::fetch_all(&ctx.repo_root);
 
     // Get all branches and filter out those already attached to worktrees
     let all_branches = git::list_branches(&ctx.repo_root)?;
@@ -81,7 +81,10 @@ pub fn run(branch: &str, no_scripts: bool) -> anyhow::Result<()> {
 
     // Fetch latest from remote
     println!("Fetching from remote...");
-    git::fetch_and_update_branch(&ctx.repo_root, &ctx.config.worktree.base_branch);
+    git::fetch_all(&ctx.repo_root);
+
+    // Update the target branch to match remote before checkout
+    git::update_branch_from_remote(&ctx.repo_root, branch);
 
     // Check out existing branch into worktree
     println!("Creating worktree '{worktree_name}' from branch '{branch}'...");

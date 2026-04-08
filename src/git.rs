@@ -74,27 +74,29 @@ pub fn current_worktree_name(cwd: &Path) -> anyhow::Result<String> {
     Ok(file_name.to_string())
 }
 
-/// Fetch the latest state of a branch from origin and fast-forward the local ref.
+/// Fetch all branches from origin and prune deleted remote branches.
 ///
-/// Skips the update if the local branch has unpushed commits (is ahead of remote).
 /// If the fetch fails (no remote, offline), prints a warning and continues.
-pub fn fetch_and_update_branch(repo_root: &Path, branch: &str) {
-    // Fetch latest from origin
+pub fn fetch_all(repo_root: &Path) {
     let fetch = Command::new("git")
-        .args(["fetch", "origin", branch])
+        .args(["fetch", "origin", "--prune"])
         .current_dir(repo_root)
         .output();
 
     let Ok(fetch_output) = fetch else {
-        eprintln!("Warning: failed to fetch '{branch}' from origin, using local branch");
+        eprintln!("Warning: failed to fetch from origin, using local state");
         return;
     };
 
     if !fetch_output.status.success() {
-        eprintln!("Warning: failed to fetch '{branch}' from origin, using local branch");
-        return;
+        eprintln!("Warning: failed to fetch from origin, using local state");
     }
+}
 
+/// Fast-forward a local branch ref to match its remote tracking branch.
+///
+/// Skips the update if the local branch has unpushed commits (is ahead of remote).
+pub fn update_branch_from_remote(repo_root: &Path, branch: &str) {
     // Check if local branch is ahead of remote (has unpushed work)
     let ancestor_check = Command::new("git")
         .args([
@@ -128,6 +130,15 @@ pub fn fetch_and_update_branch(repo_root: &Path, branch: &str) {
             eprintln!("Warning: failed to update local '{branch}', using current state");
         }
     }
+}
+
+/// Check if a git ref (branch, tag, remote ref) exists.
+pub fn ref_exists(repo_root: &Path, refname: &str) -> bool {
+    Command::new("git")
+        .args(["rev-parse", "--verify", "--quiet", refname])
+        .current_dir(repo_root)
+        .output()
+        .is_ok_and(|o| o.status.success())
 }
 
 /// Check if a local branch exists.

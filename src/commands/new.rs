@@ -45,24 +45,19 @@ pub fn run(name: &str, desc: Option<&str>, no_shell: bool, no_scripts: bool) -> 
     let mut script_env = port_env;
     script_env.insert("WORKTREE_NAME".to_string(), worktree_name.clone());
 
-    // Update base branch from remote before branching
-    println!(
-        "Updating '{}' from remote...",
-        ctx.config.worktree.base_branch
-    );
-    git::fetch_and_update_branch(&ctx.repo_root, &ctx.config.worktree.base_branch);
+    // Fetch latest from remote before branching
+    println!("Fetching from remote...");
+    git::fetch_all(&ctx.repo_root);
 
-    // Create worktree + branch
-    println!(
-        "Creating worktree '{worktree_name}' from '{}'...",
-        ctx.config.worktree.base_branch
-    );
-    git::add_worktree(
-        &ctx.repo_root,
-        &worktree_path,
-        &branch_name,
-        &ctx.config.worktree.base_branch,
-    )?;
+    // Prefer remote base branch; fall back to local if no remote exists
+    let remote_base = format!("origin/{}", ctx.config.worktree.base_branch);
+    let start_point = if git::ref_exists(&ctx.repo_root, &remote_base) {
+        &remote_base
+    } else {
+        &ctx.config.worktree.base_branch
+    };
+    println!("Creating worktree '{worktree_name}' from '{start_point}'...");
+    git::add_worktree(&ctx.repo_root, &worktree_path, &branch_name, start_point)?;
 
     // Store branch description if provided
     if let Some(d) = desc {
