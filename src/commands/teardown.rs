@@ -1,5 +1,6 @@
 use crate::context;
 use crate::git;
+use crate::hooks;
 use crate::scripts;
 use std::collections::HashMap;
 use std::env;
@@ -16,6 +17,9 @@ pub fn run() -> anyhow::Result<()> {
         println!("Running teardown scripts in worktree '{name}'...");
         scripts::run_scripts(&ctx.config.scripts.teardown, &cwd, &script_env)?;
     }
+
+    // Run user hook
+    hooks::run_hook("post-teardown", &cwd, &script_env, None);
 
     Ok(())
 }

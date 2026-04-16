@@ -2,6 +2,7 @@ use crate::commands::new;
 use crate::context;
 use crate::error::WkspaceError;
 use crate::git;
+use crate::hooks;
 use crate::ports;
 use crate::scripts;
 use dialoguer::FuzzySelect;
@@ -97,6 +98,9 @@ pub fn run(branch: &str, no_scripts: bool) -> anyhow::Result<()> {
         println!("Running setup scripts...");
         scripts::run_scripts(&ctx.config.scripts.setup, &worktree_path, &script_env)?;
     }
+
+    // Run user hook
+    hooks::run_hook("post-from", &worktree_path, &script_env, None);
 
     // Spawn subshell (skip in tests via env var)
     if env::var("WKSPACE_NO_SHELL").is_err() {

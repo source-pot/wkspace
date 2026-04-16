@@ -1,5 +1,6 @@
 use crate::context;
 use crate::git;
+use crate::hooks;
 use crate::ports;
 use crate::scripts;
 use std::env;
@@ -27,6 +28,9 @@ pub fn run() -> anyhow::Result<()> {
         println!("Running setup scripts in worktree '{name}'...");
         scripts::run_scripts(&ctx.config.scripts.setup, &cwd, &script_env)?;
     }
+
+    // Run user hook
+    hooks::run_hook("post-setup", &cwd, &script_env, None);
 
     Ok(())
 }

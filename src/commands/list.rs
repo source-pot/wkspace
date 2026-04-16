@@ -1,5 +1,7 @@
 use crate::context;
 use crate::git;
+use crate::hooks;
+use std::collections::HashMap;
 use std::env;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -105,6 +107,9 @@ pub fn run() -> anyhow::Result<()> {
             row.name, row.status, row.last_commit, row.description
         );
     }
+
+    // Run user hook
+    hooks::run_hook("post-list", &cwd, &HashMap::new(), None);
 
     Ok(())
 }

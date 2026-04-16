@@ -1,5 +1,7 @@
 use crate::config::Config;
 use crate::git;
+use crate::hooks;
+use std::collections::HashMap;
 use std::env;
 use std::path::Path;
 
@@ -8,6 +10,10 @@ pub fn run() -> anyhow::Result<()> {
     let repo_root = git::find_repo_root(&cwd)?;
     create_config(&repo_root)?;
     ensure_gitignore(&repo_root, ".worktrees")?;
+
+    // Run user hook
+    hooks::run_hook("post-init", &repo_root, &HashMap::new(), None);
+
     Ok(())
 }
 

@@ -1,6 +1,7 @@
 use crate::context;
 use crate::error::WkspaceError;
 use crate::git;
+use crate::hooks;
 use crate::scripts;
 use std::collections::HashMap;
 use std::env;
@@ -54,6 +55,11 @@ pub fn run(name: &str, force: bool, no_scripts: bool) -> anyhow::Result<()> {
 
     // Delete the branch
     git::delete_branch(&ctx.repo_root, &branch)?;
+
+    // Run user hook (worktree is gone, so cwd is repo root)
+    let mut hook_env = HashMap::new();
+    hook_env.insert("WORKTREE_NAME".to_string(), name.to_string());
+    hooks::run_hook("post-rm", &ctx.repo_root, &hook_env, None);
 
     println!("Worktree '{name}' removed");
     Ok(())
