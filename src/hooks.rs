@@ -5,8 +5,12 @@ use std::process::Command;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-/// Return the default hooks directory: `~/.config/wkspace/hooks`
+/// Return the hooks directory.
+/// Checks `WKSPACE_HOOKS_DIR` env var first (for testing), then `~/.config/wkspace/hooks`.
 fn default_hooks_dir() -> Option<std::path::PathBuf> {
+    if let Ok(dir) = std::env::var("WKSPACE_HOOKS_DIR") {
+        return Some(std::path::PathBuf::from(dir));
+    }
     std::env::var("HOME").ok().map(|home| {
         std::path::PathBuf::from(home)
             .join(".config")

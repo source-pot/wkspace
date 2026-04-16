@@ -1,6 +1,7 @@
 use crate::context;
 use crate::error::WkspaceError;
 use crate::git;
+use crate::hooks;
 use crate::ports;
 use crate::scripts;
 use dialoguer::Input;
@@ -70,6 +71,9 @@ pub fn run(name: &str, desc: Option<&str>, no_shell: bool, no_scripts: bool) -> 
         println!("Running setup scripts...");
         scripts::run_scripts(&ctx.config.scripts.setup, &worktree_path, &script_env)?;
     }
+
+    // Run user hook
+    hooks::run_hook("post-new", &worktree_path, &script_env, None);
 
     // Spawn subshell (skip via --no-shell flag or WKSPACE_NO_SHELL env var)
     if !no_shell && env::var("WKSPACE_NO_SHELL").is_err() {

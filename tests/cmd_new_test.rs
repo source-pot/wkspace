@@ -390,6 +390,117 @@ fn new_no_shell_flag_skips_shell() {
 }
 
 #[test]
+fn new_runs_post_new_user_hook() {
+    let dir = TempDir::new().unwrap();
+    init_git_repo(dir.path());
+
+    let hooks_dir = TempDir::new().unwrap();
+    let hook_path = hooks_dir.path().join("post-new");
+    let marker = dir.path().join(".worktrees/hook-test/user-hook-ran");
+    std::fs::write(&hook_path, format!("#!/bin/sh\ntouch user-hook-ran")).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+
+    let output = wkspace_bin()
+        .args(["new", "hook-test"])
+        .current_dir(dir.path())
+        .env("WKSPACE_NO_SHELL", "1")
+        .env("WKSPACE_HOOKS_DIR", hooks_dir.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(marker.exists(), "post-new user hook should have run");
+}
+
+#[test]
+fn new_does_not_run_hook_when_setup_script_fails() {
+    let dir = TempDir::new().unwrap();
+    init_git_repo(dir.path());
+
+    std::fs::write(
+        dir.path().join(".wkspace.toml"),
+        r#"
+[worktree]
+base_branch = "main"
+directory = ".worktrees"
+
+[scripts]
+setup = ["exit 1"]
+teardown = []
+"#,
+    )
+    .unwrap();
+
+    let hooks_dir = TempDir::new().unwrap();
+    let hook_path = hooks_dir.path().join("post-new");
+    std::fs::write(&hook_path, "#!/bin/sh\ntouch user-hook-ran").unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+
+    let output = wkspace_bin()
+        .args(["new", "fail-test"])
+        .current_dir(dir.path())
+        .env("WKSPACE_NO_SHELL", "1")
+        .env("WKSPACE_HOOKS_DIR", hooks_dir.path())
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    assert!(
+        !dir.path()
+            .join(".worktrees/fail-test/user-hook-ran")
+            .exists(),
+        "post-new hook should not run when setup script fails"
+    );
+}
+
+#[test]
+fn new_runs_hook_even_with_no_scripts_flag() {
+    let dir = TempDir::new().unwrap();
+    init_git_repo(dir.path());
+
+    let hooks_dir = TempDir::new().unwrap();
+    let hook_path = hooks_dir.path().join("post-new");
+    std::fs::write(&hook_path, "#!/bin/sh\ntouch user-hook-ran").unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+
+    let output = wkspace_bin()
+        .args(["new", "no-scripts-hook", "--no-scripts"])
+        .current_dir(dir.path())
+        .env("WKSPACE_NO_SHELL", "1")
+        .env("WKSPACE_HOOKS_DIR", hooks_dir.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        dir.path()
+            .join(".worktrees/no-scripts-hook/user-hook-ran")
+            .exists(),
+        "post-new hook should run even with --no-scripts"
+    );
+}
+
+#[test]
 fn new_auto_inits_config() {
     let dir = TempDir::new().unwrap();
     init_git_repo(dir.path());
