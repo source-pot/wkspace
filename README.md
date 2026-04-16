@@ -206,6 +206,46 @@ Scripts run sequentially via `sh -c` and stop on the first failure.
 | `WKSPACE_SHELL` | Shell to launch in worktrees. Falls back to `$SHELL`, then `/bin/sh`. Set this to e.g. `tmux` or `fish` to override the default login shell. |
 | `WKSPACE_NO_SHELL` | If set, skip launching a shell after `new`, `from`, and `open`. |
 | `WORKTREE_NAME` | Automatically set in scripts and the shell session to the worktree directory name. |
+| `WKSPACE_HOOKS_DIR` | Override the hooks directory (default: `~/.config/wkspace/hooks`). Mainly useful for testing. |
+
+## Per-User Hooks
+
+wkspace supports per-user hooks that run after each command, following the git hooks convention. Place executable scripts in `~/.config/wkspace/hooks/` named after the command:
+
+```
+~/.config/wkspace/hooks/
+├── post-new
+├── post-from
+├── post-rm
+├── post-open
+├── post-setup
+├── post-teardown
+├── post-init
+└── post-list
+```
+
+Hooks receive the same environment variables as project scripts (`WORKTREE_NAME`, allocated ports, etc.) and run with the worktree as the working directory (or the repo root for commands like `rm`, `init`, and `list` where the worktree isn't available).
+
+**Key behaviors:**
+- Hooks must be executable (`chmod +x`)
+- Hook failure prints a warning to stderr but never fails the wkspace command
+- Hooks run even when `--no-scripts` is passed
+- Hooks do **not** run if a project setup/teardown script failed
+- Hooks run after wkspace completes its work but before the interactive shell opens
+
+### Example: Set tmux pane title
+
+```sh
+# ~/.config/wkspace/hooks/post-new
+#!/bin/sh
+printf '\033]2;%s\033\\' "$WORKTREE_NAME"
+```
+
+```sh
+chmod +x ~/.config/wkspace/hooks/post-new
+```
+
+Now every `wkspace new` will set your tmux pane title to the worktree name.
 
 ## How It Works
 
