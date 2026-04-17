@@ -35,6 +35,10 @@ cargo install --path .
 
 wkspace is developed and tested on macOS. Pre-built binaries for Linux and Windows are provided as-is, with no guarantees of functionality. If you encounter platform-specific issues, bug reports are welcome.
 
+## Usage
+
+Run `wkspace` with no arguments or `wkspace --help` for a full overview including configuration reference. Each subcommand supports `--help` for detailed usage (e.g. `wkspace new --help`). Use `-h` for a compact summary.
+
 ## Quick Start
 
 ```sh
