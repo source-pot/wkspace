@@ -91,6 +91,14 @@ Use `--no-scripts` to skip running setup scripts. Use `--no-shell` to skip openi
 
 Fails if the branch or worktree already exists.
 
+**Tip:** `wkspace new` creates a purely local branch with no upstream. On first `git push` you'll need `-u origin <branch>` unless you've enabled git's auto-upstream behaviour globally:
+
+```sh
+git config --global push.autoSetupRemote true
+```
+
+Requires git ≥ 2.37. This is a one-time setup and applies to all repos. `wkspace from` is unaffected — git's DWIM already sets the upstream when checking out a remote branch.
+
 ### `wkspace from [branch]`
 
 Creates a worktree from an existing local or remote branch.
