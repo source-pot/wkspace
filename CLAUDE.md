@@ -11,15 +11,7 @@ git fetch --all
 git pull origin main --ff-only
 ```
 
-Then create a worktree:
-
-```sh
-wkspace new <branch-name> --no-shell
-```
-
-Work in `.worktrees/<branch-name>/`.
-
-When a piece of work is finished, offer the user a chance to manually test the changes before committing. Once approved, commit and push. For anything user-visible, create a PR. Clean up with `wkspace rm <branch-name>` once merged.
+When a piece of work is finished, offer the user a chance to manually test the changes before committing. Once approved, commit and push. For anything user-visible, create a PR.
 
 After a new feature or bugfix is implemented, offer to create a new release.
 
