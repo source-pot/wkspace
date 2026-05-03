@@ -34,6 +34,21 @@ fn wkspace_bin() -> Command {
     Command::new(env!("CARGO_BIN_EXE_wkspace"))
 }
 
+#[test]
+fn prints_version_with_short_and_long_flag() {
+    let expected = format!("wkspace {}", env!("CARGO_PKG_VERSION"));
+
+    for flag in ["-v", "--version"] {
+        let out = wkspace_bin().arg(flag).output().unwrap();
+        assert!(out.status.success(), "{flag} should exit 0");
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            stdout.trim() == expected,
+            "{flag} printed {stdout:?}, expected {expected:?}"
+        );
+    }
+}
+
 /// Full lifecycle: init → new → list → rm → list
 #[test]
 fn full_lifecycle() {

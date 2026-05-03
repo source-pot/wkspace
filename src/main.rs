@@ -3,6 +3,8 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name = "wkspace",
+    version,
+    disable_version_flag = true,
     about = "Manage Git worktrees with lifecycle scripts",
     long_about = "\
 Manage Git worktrees with lifecycle scripts.
@@ -51,6 +53,10 @@ USER HOOKS:
   Scripts receive WORKTREE_NAME and any allocated port variables."
 )]
 struct Cli {
+    /// Print version and exit
+    #[arg(short = 'v', long = "version", action = clap::ArgAction::Version)]
+    version: Option<bool>,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
