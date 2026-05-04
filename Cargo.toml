@@ -15,6 +15,7 @@ dialoguer = { version = "0.11", features = ["fuzzy-select"] }
 toml = "0.8"
 ratatui = "0.29"
 crossterm = "0.28"
+thiserror = "1"
 
 [profile.release]
 strip = true
