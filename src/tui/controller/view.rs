@@ -25,6 +25,13 @@ pub fn render(f: &mut Frame, app: &App) {
     render_detail(f, chunks[2], app);
     render_footer(f, chunks[3], app);
     render_status(f, chunks[4], app);
+
+    if let crate::tui::controller::Modal::Help = app.modal {
+        render_help_overlay(f, area);
+    }
+    if let crate::tui::controller::Modal::KillConfirm = app.modal {
+        render_kill_confirm(f, area);
+    }
 }
 
 fn render_title(f: &mut Frame, area: Rect, app: &App) {
@@ -131,4 +138,57 @@ fn render_status(f: &mut Frame, area: Rect, app: &App) {
     let msg = app.status.message.clone().unwrap_or_default();
     let p = Paragraph::new(Line::from(msg));
     f.render_widget(p, area);
+}
+
+fn render_help_overlay(f: &mut Frame, area: Rect) {
+    let block = Block::default().title(" Help ").borders(Borders::ALL);
+    let lines = vec![
+        Line::from(""),
+        Line::from("  ↑/↓ k/j      navigate"),
+        Line::from("  g  G         top / bottom"),
+        Line::from("  enter / o    open or focus session"),
+        Line::from("  n            new worktree (M4)"),
+        Line::from("  f            from existing branch (M4)"),
+        Line::from("  d            remove worktree (M4)"),
+        Line::from("  s  t         re-run setup / teardown (M4)"),
+        Line::from("  r            refresh"),
+        Line::from("  ?            toggle help"),
+        Line::from("  q  Ctrl-C    detach session"),
+        Line::from("  Q            kill session (with confirm)"),
+        Line::from(""),
+        Line::from("  press ? or esc to close"),
+    ];
+    let p = Paragraph::new(lines).block(block);
+    let overlay = centered_rect(50, 18, area);
+    f.render_widget(ratatui::widgets::Clear, overlay);
+    f.render_widget(p, overlay);
+}
+
+fn render_kill_confirm(f: &mut Frame, area: Rect) {
+    let block = Block::default()
+        .title(" Kill session? ")
+        .borders(Borders::ALL);
+    let p = Paragraph::new(vec![
+        Line::from(""),
+        Line::from("  This will close all worktree windows in this repo's"),
+        Line::from("  wkspace session. Long-running processes (Claude,"),
+        Line::from("  dev servers) will be terminated."),
+        Line::from(""),
+        Line::from("  Press y to confirm, n or esc to cancel."),
+    ])
+    .block(block);
+    let overlay = centered_rect(60, 8, area);
+    f.render_widget(ratatui::widgets::Clear, overlay);
+    f.render_widget(p, overlay);
+}
+
+fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
+    let x = area.x + (area.width.saturating_sub(width)) / 2;
+    let y = area.y + (area.height.saturating_sub(height)) / 2;
+    Rect {
+        x,
+        y,
+        width: width.min(area.width),
+        height: height.min(area.height),
+    }
 }

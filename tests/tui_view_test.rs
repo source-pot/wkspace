@@ -74,3 +74,21 @@ fn renders_row_names() {
     assert!(dump.contains("alpha"));
     assert!(dump.contains("beta"));
 }
+
+#[test]
+fn help_overlay_renders_when_active() {
+    let backend = TestBackend::new(60, 30);
+    let mut terminal = Terminal::new(backend).unwrap();
+    let mut app = empty_app();
+    app.modal = Modal::Help;
+    terminal.draw(|f| view::render(f, &app)).unwrap();
+    let buffer = terminal.backend().buffer().clone();
+    let mut dump = String::new();
+    for y in 0..30 {
+        for x in 0..60 {
+            dump.push_str(buffer[(x, y)].symbol());
+        }
+    }
+    assert!(dump.contains("Help"));
+    assert!(dump.contains("navigate"));
+}
