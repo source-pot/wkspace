@@ -19,10 +19,8 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
         (KeyCode::Char('j') | KeyCode::Down, _) => move_down(app),
         (KeyCode::Char('k') | KeyCode::Up, _) => move_up(app),
         (KeyCode::Char('g'), m) if !m.contains(KeyModifiers::SHIFT) => app.selected = 0,
-        (KeyCode::Char('G'), _) => {
-            if !app.rows.is_empty() {
-                app.selected = app.rows.len() - 1;
-            }
+        (KeyCode::Char('G'), _) if !app.rows.is_empty() => {
+            app.selected = app.rows.len() - 1;
         }
         (KeyCode::Char('q'), _) => app.should_quit = true,
         (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => app.should_quit = true,
