@@ -80,13 +80,74 @@ impl App {
 }
 
 pub fn run() -> anyhow::Result<()> {
+    use crossterm::{
+        event::{self, DisableMouseCapture, EnableMouseCapture, Event},
+        execute,
+        terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    };
+    use ratatui::{backend::CrosstermBackend, Terminal};
+    use std::io::stdout;
+    use std::time::{Duration, Instant};
+
     let cwd = env::current_dir().context("get cwd")?;
     let ctx = context::resolve(&cwd)?;
     let mut app = App::new(&ctx)?;
-    // Real run loop comes in Task 14.
-    let _ = &mut app;
-    println!("controller boot ok ({} rows)", app.rows.len());
-    let mut buf = String::new();
-    std::io::stdin().read_line(&mut buf)?;
-    Ok(())
+
+    // Restore terminal on panic.
+    let original_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let _ = disable_raw_mode();
+        let _ = execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture);
+        original_hook(info);
+    }));
+
+    enable_raw_mode().context("enable raw mode")?;
+    execute!(stdout(), EnterAlternateScreen, EnableMouseCapture).context("enter alt screen")?;
+    let backend = CrosstermBackend::new(stdout());
+    let mut terminal = Terminal::new(backend).context("create terminal")?;
+
+    let tick = Duration::from_secs(2);
+    let mut last_tick = Instant::now();
+
+    let result = (|| -> anyhow::Result<()> {
+        loop {
+            terminal.draw(|f| view::render(f, &app))?;
+
+            let timeout = tick.saturating_sub(last_tick.elapsed());
+            if event::poll(timeout)? {
+                if let Event::Key(k) = event::read()? {
+                    let action = events::handle_key(&mut app, k);
+                    if action == events::Action::Refresh {
+                        app.refresh(&ctx);
+                    }
+                }
+            }
+            if last_tick.elapsed() >= tick {
+                app.refresh(&ctx);
+                last_tick = Instant::now();
+            }
+            if app.should_quit {
+                break;
+            }
+        }
+        Ok(())
+    })();
+
+    disable_raw_mode().ok();
+    execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture).ok();
+    terminal.show_cursor().ok();
+
+    if app.kill_session {
+        let target = crate::tui::tmux::session_name(&ctx.repo_root);
+        let _ = std::process::Command::new("tmux")
+            .args(["kill-session", "-t", &target])
+            .status();
+    } else {
+        // Detach from the current client (run when in tmux). No-op outside tmux.
+        let _ = std::process::Command::new("tmux")
+            .arg("detach-client")
+            .status();
+    }
+
+    result
 }
