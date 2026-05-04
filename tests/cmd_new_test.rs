@@ -397,7 +397,7 @@ fn new_runs_post_new_user_hook() {
     let hooks_dir = TempDir::new().unwrap();
     let hook_path = hooks_dir.path().join("post-new");
     let marker = dir.path().join(".worktrees/hook-test/user-hook-ran");
-    std::fs::write(&hook_path, format!("#!/bin/sh\ntouch user-hook-ran")).unwrap();
+    std::fs::write(&hook_path, "#!/bin/sh\ntouch user-hook-ran").unwrap();
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
