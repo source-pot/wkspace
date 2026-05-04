@@ -69,9 +69,9 @@ pub fn preflight() -> Result<(u32, u32), TmuxError> {
         .output()
         .map_err(|_| TmuxError::NotFound)?;
 
-    let raw = String::from_utf8_lossy(&output.stdout).to_string();
-    let version =
-        parse_version_output(&raw).ok_or_else(|| TmuxError::UnparseableVersion(raw.clone()))?;
+    let raw = String::from_utf8_lossy(&output.stdout);
+    let version = parse_version_output(&raw)
+        .ok_or_else(|| TmuxError::UnparseableVersion(raw.into_owned()))?;
 
     if !version_at_least(version, REQUIRED_TMUX) {
         return Err(TmuxError::TooOld(version.0, version.1));
