@@ -112,3 +112,18 @@ pub fn session_exists(name: &str) -> bool {
         .map(|o| o.status.success())
         .unwrap_or(false)
 }
+
+/// Returns the list of window names in the given session. Empty if the session
+/// doesn't exist or tmux fails.
+pub fn list_window_names(session: &str) -> Vec<String> {
+    let output = Command::new("tmux")
+        .args(["list-windows", "-t", session, "-F", "#{window_name}"])
+        .output();
+    match output {
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .map(|l| l.to_string())
+            .collect(),
+        _ => Vec::new(),
+    }
+}

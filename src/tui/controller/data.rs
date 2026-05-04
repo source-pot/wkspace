@@ -1,7 +1,6 @@
 use crate::context::Context;
 use crate::git;
 use crate::tui::tmux;
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone)]
@@ -19,7 +18,7 @@ pub fn fetch_rows(ctx: &Context) -> anyhow::Result<Vec<WorktreeRow>> {
     let entries = git::list_worktrees(&ctx.repo_root)?;
     let worktrees_dir = ctx.worktrees_dir();
     let session = tmux::session_name(&ctx.repo_root);
-    let active_windows = list_window_names(&session);
+    let active_windows = tmux::list_window_names(&session);
     let now_secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
@@ -61,17 +60,4 @@ pub fn fetch_rows(ctx: &Context) -> anyhow::Result<Vec<WorktreeRow>> {
         });
     }
     Ok(rows)
-}
-
-fn list_window_names(session: &str) -> Vec<String> {
-    let output = Command::new("tmux")
-        .args(["list-windows", "-t", session, "-F", "#{window_name}"])
-        .output();
-    match output {
-        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
-            .lines()
-            .map(|l| l.to_string())
-            .collect(),
-        _ => Vec::new(),
-    }
 }
