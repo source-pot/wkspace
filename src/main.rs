@@ -207,6 +207,10 @@ in [scripts].teardown from .wkspace.toml.
 Useful for cleaning up resources (e.g. stopping services) without removing the
 worktree itself.")]
     Teardown,
+
+    /// Internal: run the TUI controller. Hidden — used by the launcher.
+    #[command(name = "__controller", hide = true)]
+    Controller,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -215,8 +219,9 @@ fn main() -> anyhow::Result<()> {
     let command = match cli.command {
         Some(cmd) => cmd,
         None => {
-            Cli::parse_from(["wkspace", "--help"]);
-            return Ok(());
+            let cwd = std::env::current_dir()?;
+            let repo_root = wkspace::git::find_repo_root(&cwd)?;
+            return wkspace::tui::run_launcher(&repo_root);
         }
     };
 
@@ -262,5 +267,6 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Setup => wkspace::commands::setup::run(),
         Commands::Teardown => wkspace::commands::teardown::run(),
+        Commands::Controller => wkspace::tui::controller::run(),
     }
 }
