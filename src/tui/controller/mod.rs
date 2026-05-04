@@ -41,24 +41,33 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(ctx: &context::Context) -> anyhow::Result<Self> {
-        let rows = data::fetch_rows(ctx).unwrap_or_default();
+    pub fn new(ctx: &context::Context) -> Self {
+        let (rows, status) = match data::fetch_rows(ctx) {
+            Ok(r) => (r, Status::default()),
+            Err(e) => (
+                Vec::new(),
+                Status {
+                    message: Some(format!("initial fetch failed: {e}")),
+                    level: StatusLevel::Error,
+                },
+            ),
+        };
         let repo_name = ctx
             .repo_root
             .file_name()
             .map(|n| n.to_string_lossy().to_string())
             .unwrap_or_default();
-        Ok(Self {
+        Self {
             repo_root: ctx.repo_root.clone(),
             repo_name,
             base_branch: ctx.config.worktree.base_branch.clone(),
             rows,
             selected: 0,
             modal: Modal::None,
-            status: Status::default(),
+            status,
             should_quit: false,
             kill_session: false,
-        })
+        }
     }
 
     pub fn refresh(&mut self, ctx: &context::Context) {
@@ -91,7 +100,7 @@ pub fn run() -> anyhow::Result<()> {
 
     let cwd = env::current_dir().context("get cwd")?;
     let ctx = context::resolve(&cwd)?;
-    let mut app = App::new(&ctx)?;
+    let mut app = App::new(&ctx);
 
     // Restore terminal on panic.
     let original_hook = std::panic::take_hook();
