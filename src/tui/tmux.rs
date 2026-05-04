@@ -78,3 +78,37 @@ pub fn preflight() -> Result<(u32, u32), TmuxError> {
     }
     Ok(version)
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum TmuxEnv {
+    Inside,
+    Outside,
+}
+
+pub fn detect_env<F: Fn(&str) -> Option<String>>(lookup: &F) -> TmuxEnv {
+    match lookup("TMUX") {
+        Some(s) if !s.is_empty() => TmuxEnv::Inside,
+        _ => TmuxEnv::Outside,
+    }
+}
+
+/// Returns the current tmux session name, when run from inside a pane.
+pub fn current_session_name() -> Option<String> {
+    let output = Command::new("tmux")
+        .args(["display-message", "-p", "#{session_name}"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+/// Returns true if a tmux session with `name` exists.
+pub fn session_exists(name: &str) -> bool {
+    Command::new("tmux")
+        .args(["has-session", "-t", name])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}

@@ -51,3 +51,21 @@ fn version_at_least_compares_correctly() {
     assert!(tmux::version_at_least((4, 0), (3, 9)));
     assert!(!tmux::version_at_least((2, 9), (3, 0)));
 }
+
+#[test]
+fn outside_tmux_when_env_missing() {
+    let lookup = |_: &str| None;
+    assert!(matches!(tmux::detect_env(&lookup), tmux::TmuxEnv::Outside));
+}
+
+#[test]
+fn inside_tmux_when_env_set() {
+    let lookup = |k: &str| {
+        if k == "TMUX" {
+            Some("/tmp/tmux-1000/default,1234,0".to_string())
+        } else {
+            None
+        }
+    };
+    assert!(matches!(tmux::detect_env(&lookup), tmux::TmuxEnv::Inside));
+}
