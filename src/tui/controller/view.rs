@@ -146,7 +146,7 @@ fn render_help_overlay(f: &mut Frame, area: Rect) {
         Line::from(""),
         Line::from("  ↑/↓ k/j      navigate"),
         Line::from("  g  G         top / bottom"),
-        Line::from("  enter / o    open or focus session"),
+        Line::from("  enter / o    open or focus session (M2)"),
         Line::from("  n            new worktree (M4)"),
         Line::from("  f            from existing branch (M4)"),
         Line::from("  d            remove worktree (M4)"),
