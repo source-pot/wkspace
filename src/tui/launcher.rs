@@ -2,8 +2,7 @@ use crate::tui::tmux::TmuxEnv;
 
 pub struct Inputs {
     pub env: TmuxEnv,
-    pub target_session: String,
-    pub current_session: Option<String>,
+    pub is_target: bool,
     pub target_session_exists: bool,
 }
 
@@ -25,7 +24,7 @@ pub fn decide(inputs: Inputs) -> Decision {
             }
         }
         TmuxEnv::Inside => {
-            if inputs.current_session.as_deref() == Some(inputs.target_session.as_str()) {
+            if inputs.is_target {
                 Decision::RefocusController
             } else {
                 Decision::ErrorInsideOtherSession {
@@ -54,11 +53,11 @@ pub fn run(repo_root: &Path) -> anyhow::Result<()> {
         None
     };
     let exists = tmux::session_exists(&target);
+    let is_target = current.as_deref() == Some(target.as_str());
 
     let decision = decide(Inputs {
         env,
-        target_session: target.clone(),
-        current_session: current,
+        is_target,
         target_session_exists: exists,
     });
 
