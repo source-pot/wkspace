@@ -39,6 +39,16 @@ wkspace is developed and tested on macOS. Pre-built binaries for Linux and Windo
 
 Run `wkspace` with no arguments or `wkspace --help` for a full overview including configuration reference. Each subcommand supports `--help` for detailed usage (e.g. `wkspace new --help`). Use `-h` for a compact summary. Use `-v` or `--version` to print the installed version.
 
+## TUI mode (preview)
+
+Running `wkspace` with no arguments launches a tmux-backed TUI showing
+your worktrees alongside a regular shell pane. Navigate with arrow keys
+or `j`/`k`, press `?` for help, `q` to detach. Requires tmux ≥ 3.0.
+
+Mutating actions (`n`/`f`/`d`/`s`/`t`) are not yet wired up — use the
+existing CLI subcommands for those. Full TUI parity lands in upcoming
+milestones.
+
 ## Quick Start
 
 ```sh
