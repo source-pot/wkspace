@@ -6,3 +6,4 @@ pub mod git;
 pub mod hooks;
 pub mod ports;
 pub mod scripts;
+pub mod tui;
